@@ -1,0 +1,19 @@
+# configuração local, com a chave da API — NUNCA versionar
+config.env
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# temporários do Excel
+~$*.xlsx

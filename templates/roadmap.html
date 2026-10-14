@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap — {{ hortalica.nome }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container container-roadmap">
+  <header class="topo">
+    <a href="{{ url_for('escolher_tipo', slug=slug) }}" class="link-voltar">← Trocar variedade</a>
+    <p class="eyebrow">{{ hortalica.cientifico }}</p>
+    <h1>ROADMAP DE CULTIVO — {{ tipo.titulo|upper }}</h1>
+    <p class="subtitle">Clique em um ponto para ver a explicação completa e pedir ajuda da IA.
+      As cores indicam de onde vem cada informação.</p>
+    <div class="legenda-fontes">
+      <span class="legenda-item legenda-base"><span class="bolinha"></span>Da planilha — base validada</span>
+      <span class="legenda-item legenda-ia"><span class="bolinha"></span>Gerado pela IA</span>
+    </div>
+    <div class="faixa-tipo">
+      <span class="faixa-rotulo">Variedade escolhida</span>
+      <span class="faixa-nome">{{ tipo.titulo }}</span>
+      <span class="faixa-desc">{{ tipo.conteudo }}</span>
+    </div>
+  </header>
+
+  <div class="roadmap">
+    <div class="espinha"></div>
+
+    {% for etapa in etapas %}
+      <div class="etapa">
+        <div class="no-etapa">
+          <span class="etapa-num">{{ loop.index }}</span>
+          <span class="etapa-titulo">{{ etapa.titulo }}</span>
+        </div>
+
+        <div class="pontos">
+          {% for item in etapa.itens %}
+            <div class="linha-ponto {{ 'esq' if loop.index0 % 2 == 0 else 'dir' }}">
+              <button class="no-ponto" type="button"
+                      data-id="{{ item.id }}"
+                      data-etapa="{{ item.etapa_idx }}"
+                      data-item="{{ item.item_idx }}">
+                {{ item.titulo }}
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="fim-roadmap">Fim do roadmap</div>
+  </div>
+</div>
+
+<!-- Painel lateral do ponto selecionado -->
+<div id="overlay" class="overlay" hidden></div>
+<aside id="painel" class="painel" hidden>
+  <button id="fechar-painel" class="fechar" type="button" aria-label="Fechar">×</button>
+  <p class="eyebrow" id="painel-etapa"></p>
+  <h2 id="painel-titulo"></h2>
+
+  <div class="bloco bloco-fonte fonte-base">
+    <span class="tag-fonte">Da planilha — base validada</span>
+    <h3>Explicação</h3>
+    <p id="painel-conteudo" class="texto"></p>
+  </div>
+
+  <div class="bloco bloco-fonte fonte-ia bloco-ia">
+    <span class="tag-fonte">Gerado pela IA</span>
+    <h3>Pedir ajuda da IA sobre este ponto</h3>
+    <div class="sugestoes">
+      <button type="button" class="sugestao">Explica com mais detalhes</button>
+      <button type="button" class="sugestao">Como faço isso numa horta pequena?</button>
+      <button type="button" class="sugestao">Quais erros mais comuns aqui?</button>
+    </div>
+    <form id="form-ia">
+      <textarea id="pergunta-ia" rows="3" placeholder="Digite sua dúvida sobre este ponto…" required></textarea>
+      <button type="submit" id="btn-ia">Perguntar</button>
+    </form>
+    <div id="ia-status" class="digitando" hidden>a IA está pensando…</div>
+    <div id="ia-respostas" class="respostas"></div>
+  </div>
+</aside>
+
+<script>
+  window.ROADMAP = {{ etapas | tojson }};
+  window.HORTALICA = "{{ slug }}";
+  window.TIPO = "{{ tipo.slug }}";
+  window.TIPO_NOME = {{ tipo.titulo | tojson }};
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ hortalica.nome }} — escolha a variedade</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <header class="topo">
+    <a href="{{ url_for('inicio') }}" class="link-voltar">← Todas as hortaliças</a>
+    <p class="eyebrow">{{ hortalica.cientifico }}</p>
+    <h1>QUAL {{ hortalica.nome|upper }} VOCÊ VAI PLANTAR?</h1>
+    <p class="subtitle">Escolha a variedade para abrir o roadmap de cultivo.</p>
+  </header>
+
+  <section class="grade-tipos">
+    {% for tipo in tipos %}
+      <a class="card-tipo" href="{{ url_for('roadmap', slug=slug, tipo_slug=tipo.slug) }}">
+        <span class="card-nome">{{ tipo.titulo }}</span>
+        <span class="card-desc">{{ tipo.conteudo }}</span>
+        <span class="card-acao">Abrir roadmap →</span>
+      </a>
+    {% endfor %}
+  </section>
+</div>
+</body>
+</html>

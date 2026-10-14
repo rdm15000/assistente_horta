@@ -1,0 +1,7 @@
+# normaliza quebra de linha no repositório (evita diff só de CRLF/LF)
+* text=auto
+
+# arquivos gerados: não contam como código nas estatísticas do GitHub
+chunks.json           linguist-generated
+chunks_embeddings.json linguist-generated
+roadmap_estruturado.json linguist-generated

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Cultivo de Hortaliças</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <header class="topo">
+    <p class="eyebrow">Assistente de extensão rural</p>
+    <h1>GUIA DE CULTIVO DE HORTALIÇAS</h1>
+    <p class="subtitle">Escolha uma hortaliça para abrir o roadmap de cultivo, do preparo do solo à colheita.</p>
+  </header>
+
+  <section class="grade-hortalicas">
+    {% for slug, h in hortalicas.items() %}
+      {% if h.disponivel %}
+        <a class="card-hortalica" href="{{ url_for('escolher_tipo', slug=slug) }}">
+          <span class="card-nome">{{ h.nome }}</span>
+          <span class="card-cientifico">{{ h.cientifico }}</span>
+          <span class="card-acao">Abrir roadmap →</span>
+        </a>
+      {% else %}
+        <div class="card-hortalica card-indisponivel">
+          <span class="card-nome">{{ h.nome }}</span>
+          <span class="card-cientifico">{{ h.cientifico }}</span>
+          <span class="card-acao">Em breve</span>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </section>
+</div>
+</body>
+</html>
