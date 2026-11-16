@@ -1,4 +1,4 @@
-# Assistente de Extensão Rural — Hortaliças
+# HortaGuIA — Assistente de Extensão Rural para Hortaliças
 
 Assistente para pequenos produtores de hortaliças, no formato de roadmap 
 com apoio de LLM.

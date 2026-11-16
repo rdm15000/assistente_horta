@@ -4,6 +4,7 @@ import json
 import os
 import re
 import unicodedata
+from urllib.parse import urlparse
 
 from flask import Flask, render_template, request, jsonify, abort, redirect, url_for
 
@@ -134,6 +135,46 @@ def separar_tipos(etapas):
     return etapas[0]["itens"], etapas[1:]
 
 
+_RE_URL = re.compile(r"https?://[^\s()]+")
+_RE_FONTE_ENTRE_PARENTESES = re.compile(r"\s*\(\s*https?://[^()]*\)")
+
+
+def separar_fontes(texto):
+    # Na planilha a fonte vem colada no texto, entre parênteses:
+    #   "... Alto grau de crocância (https://.../Alface-final.pdf)."
+    # Aqui ela sai do texto e vira uma lista, pra interface mostrar na
+    # caixinha "Fonte". Devolve (texto_limpo, fontes).
+    urls = []
+
+    def tirar(m):
+        urls.extend(u.rstrip(".,;") for u in _RE_URL.findall(m.group(0)))
+        return ""
+
+    def tirar_solta(m):
+        # URL fora de parênteses: sai a URL, fica a pontuação que vinha grudada
+        url = m.group(0).lstrip()
+        limpa = url.rstrip(".,;")
+        urls.append(limpa)
+        return url[len(limpa):]
+
+    limpo = _RE_FONTE_ENTRE_PARENTESES.sub(tirar, texto or "")
+    limpo = re.sub(r"\s*" + _RE_URL.pattern, tirar_solta, limpo).strip()
+
+    fontes = []
+    for url in dict.fromkeys(urls):  # sem repetir, mantendo a ordem
+        dominio = re.sub(r"^www\.", "", urlparse(url).netloc)
+        fontes.append({"url": url, "rotulo": dominio or url})
+    return limpo, fontes
+
+
+def com_fontes(item, conteudo=None):
+    # cópia do item com o texto limpo em "conteudo" e a lista em "fontes"
+    copia = dict(item)
+    bruto = item.get("conteudo", "") if conteudo is None else conteudo
+    copia["conteudo"], copia["fontes"] = separar_fontes(bruto)
+    return copia
+
+
 def conteudo_do_ponto(item, tipo_titulo):
     # conteúdo por variedade (campo opcional "por_tipo")
     especifico = (item.get("por_tipo") or {}).get(tipo_titulo)
@@ -155,6 +196,7 @@ def escolher_tipo(slug):
         return render_template("em_breve.html", hortalica=info), 200
 
     tipos, _ = separar_tipos(etapas)
+    tipos = [com_fontes(t) for t in tipos]
     return render_template("tipos.html", slug=slug, hortalica=info, tipos=tipos)
 
 
@@ -176,16 +218,14 @@ def roadmap(slug, tipo_slug):
     for etapa in demais:
         itens = []
         for item in etapa["itens"]:
-            copia = dict(item)
-            copia["conteudo"] = conteudo_do_ponto(item, tipo["titulo"])
-            itens.append(copia)
+            itens.append(com_fontes(item, conteudo_do_ponto(item, tipo["titulo"])))
         etapas_view.append({**etapa, "itens": itens})
 
     return render_template(
         "roadmap.html",
         slug=slug,
         hortalica=info,
-        tipo=tipo,
+        tipo=com_fontes(tipo),
         etapas=etapas_view,
     )
 

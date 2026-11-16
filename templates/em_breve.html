@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ hortalica.nome }} — em breve</title>
+<title>{{ hortalica.nome }} — em breve · HortaGuIA</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
   <header class="topo">
+    <a href="{{ url_for('inicio') }}" class="logo logo-pequeno">HortaGu<span class="logo-ia">IA</span></a>
     <a href="{{ url_for('inicio') }}" class="link-voltar">← Voltar</a>
-    <p class="eyebrow">{{ hortalica.cientifico }}</p>
     <h1>{{ hortalica.nome }}</h1>
     <p class="subtitle">O roadmap desta hortaliça ainda está em construção.</p>
   </header>

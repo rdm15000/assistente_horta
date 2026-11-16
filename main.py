@@ -4,7 +4,7 @@ from agents import AgenteRoadmap, AgenteConhecimento, Orquestrador
 
 def main():
     print("=" * 60)
-    print("Assistente de Extensão Rural — Cultivo de Alface (protótipo)")
+    print("HortaGuIA — Cultivo de Alface (protótipo)")
     print("=" * 60)
 
     cidade = input("Qual sua cidade? ").strip() or None

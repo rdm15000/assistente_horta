@@ -8,6 +8,7 @@ const fechar = document.getElementById("fechar-painel");
 const elEtapa = document.getElementById("painel-etapa");
 const elTitulo = document.getElementById("painel-titulo");
 const elConteudo = document.getElementById("painel-conteudo");
+const elFontes = document.getElementById("painel-fontes");
 
 const formIA = document.getElementById("form-ia");
 const perguntaIA = document.getElementById("pergunta-ia");
@@ -29,6 +30,29 @@ function acharPonto(id) {
   return null;
 }
 
+// Caixinha "Fonte" do painel: some quando o ponto não tem fonte e sempre
+// volta fechada ao trocar de ponto.
+function mostrarFontes(fontes) {
+  const lista = elFontes.querySelector("ul");
+  lista.innerHTML = "";
+  elFontes.open = false;
+  elFontes.hidden = !fontes || fontes.length === 0;
+  if (elFontes.hidden) return;
+
+  elFontes.querySelector("summary").textContent = fontes.length === 1 ? "Fonte" : "Fontes";
+  fontes.forEach((f) => {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = f.url;
+    a.title = f.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = `${f.rotulo} ↗`;
+    li.appendChild(a);
+    lista.appendChild(li);
+  });
+}
+
 function abrirPainel(id) {
   const achado = acharPonto(id);
   if (!achado) return;
@@ -38,6 +62,7 @@ function abrirPainel(id) {
   elEtapa.textContent = `Etapa ${pos + 1} · ${etapa.titulo} · ${window.TIPO_NOME}`;
   elTitulo.textContent = item.titulo;
   elConteudo.textContent = item.conteudo || "(sem conteúdo cadastrado ainda para este ponto)";
+  mostrarFontes(item.fontes);
 
   iaRespostas.innerHTML = "";
   perguntaIA.value = "";

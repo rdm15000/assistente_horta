@@ -8,7 +8,7 @@
   --largura-ponto: 300px;
 
   /* origem do conteudo */
-  --fonte-base: #1b6b3a;      /* veio da planilha / base validada */
+  --fonte-base: #1b6b3a;      /* base validada por especialista */
   --fonte-base-bg: #eff7f2;
   --fonte-ia: #5b3fb5;        /* gerado pela IA */
   --fonte-ia-bg: #f3f0fc;
@@ -64,6 +64,21 @@ h3 {
   max-width: 620px;
 }
 
+/* ---------- Logo HortaGuIA ---------- */
+.logo {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--fonte-base);
+  text-decoration: none;
+}
+.logo-ia { color: var(--fonte-ia); }
+.logo-grande { font-size: 40px; }
+.logo-pequeno {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
 .link-voltar {
   display: inline-block;
   font-size: 13px;
@@ -105,7 +120,6 @@ h3 {
 .card-indisponivel:hover { transform: none; box-shadow: none; }
 
 .card-nome { font-size: 20px; font-weight: 600; }
-.card-cientifico { font-size: 13px; font-style: italic; color: var(--gray); }
 .card-acao { margin-top: 16px; font-size: 13px; }
 
 /* ---------- Escolha da variedade ---------- */
@@ -117,6 +131,7 @@ h3 {
 }
 
 .card-tipo {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 22px;
@@ -138,7 +153,11 @@ h3 {
   color: var(--gray-dark);
   flex: 1;
 }
-.card-tipo .card-acao { margin-top: 18px; }
+.card-tipo .card-acao { margin-top: 18px; color: inherit; text-decoration: none; }
+/* o card inteiro continua clicável: o link "Abrir roadmap" cobre o card,
+   e a caixinha de fonte fica por cima dele */
+.card-tipo .card-acao::after { content: ""; position: absolute; inset: 0; }
+.card-tipo .fontes { position: relative; z-index: 1; margin-top: 14px; }
 
 /* faixa com a variedade escolhida, no topo do roadmap */
 .faixa-tipo {
@@ -445,6 +464,47 @@ h3 {
 .fonte-base .tag-fonte { background: var(--fonte-base); }
 .fonte-ia .tag-fonte { background: var(--fonte-ia); }
 .bloco-fonte h3 { margin-bottom: 8px; }
+
+/* ---------- Caixinha "Fonte" (abre e fecha ao clicar) ---------- */
+
+.fontes {
+  margin-top: 12px;
+  border: 1px solid var(--gray-light);
+  border-radius: 4px;
+  background: var(--white);
+  align-self: flex-start;
+  max-width: 100%;
+}
+.fontes summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-dark);
+  user-select: none;
+}
+.fontes summary::-webkit-details-marker { display: none; }
+.fontes summary::after { content: "▾"; font-size: 12px; }
+.fontes[open] summary::after { content: "▴"; }
+.fontes summary:hover { color: var(--black); }
+.fontes ul {
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  border-top: 1px solid var(--gray-light);
+}
+.fontes li + li { margin-top: 4px; }
+.fontes a {
+  font-size: 12px;
+  color: var(--fonte-base);
+  word-break: break-all;
+}
 
 /* ---------- Mobile: roadmap vira uma coluna só ---------- */
 

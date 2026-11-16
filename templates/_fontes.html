@@ -1,0 +1,11 @@
+{# Caixinha "Fonte": fechada por padrão, abre ao clicar. Espera a lista "fontes". #}
+{% if fontes %}
+<details class="fontes">
+  <summary>{{ "Fonte" if fontes|length == 1 else "Fontes" }}</summary>
+  <ul>
+    {% for f in fontes %}
+      <li><a href="{{ f.url }}" target="_blank" rel="noopener" title="{{ f.url }}">{{ f.rotulo }} ↗</a></li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
