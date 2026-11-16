@@ -69,7 +69,8 @@ pip install -r requirements.txt
 ```
 
 Instala Flask (servidor web), google-genai (cliente da API do Gemini), numpy
-(busca por similaridade) e openpyxl (leitura da planilha).
+(busca por similaridade), openpyxl (leitura da planilha) e pypdf (leitura dos
+PDFs de referência, usada só para refazer a base de conhecimento).
 
 ### 4. Configure sua chave da API
 
@@ -118,3 +119,29 @@ Para parar o servidor, volte ao terminal e aperte **Ctrl + C**.
    explicação validada pela especialista; em **roxo**, o campo para perguntar
    à IA sobre aquele ponto (com três sugestões prontas de pergunta).
 
+---
+
+## Base de conhecimento (opcional)
+
+As respostas da IA se apoiam em trechos de duas publicações de referência: o
+livro *O cultivo de hortaliças* (Embrapa) e a cartilha *Cultive sua horta
+doméstica* (Emater-RO). Os trechos já vêm prontos no repositório
+(`chunks.json` e `chunks_embeddings.json`), então **não é preciso refazer
+nada para usar o site**.
+
+Para refazer a base a partir dos PDFs:
+
+1. Coloque os dois PDFs numa pasta `pdfs` dentro do projeto (ou informe outra
+   pasta no comando).
+2. Gere os trechos. O texto é extraído dos PDFs e dividido em janelas de 220
+   palavras, com 40 palavras de sobreposição entre um trecho e o seguinte:
+
+   ```
+   python build_chunks.py
+   ```
+
+3. Apague o `chunks_embeddings.json` antigo e gere os embeddings de novo:
+
+   ```
+   python embed_chunks.py
+   ```
