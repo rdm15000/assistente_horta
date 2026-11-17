@@ -18,7 +18,6 @@ MODELO_CHAT = config.MODELO_CHAT
 MODELOS_ALTERNATIVOS = [MODELO_CHAT, "gemini-flash-lite-latest", "gemini-2.5-flash"]
 MODELO_EMBED = config.MODELO_EMBED
 
-CAMINHO_ROADMAP = os.path.join(os.path.dirname(__file__), "roadmap_estruturado.json")
 CAMINHO_CHUNKS = os.path.join(os.path.dirname(__file__), "chunks_embeddings.json")
 
 ERROS_TEMPORARIOS = ("UNAVAILABLE", "RESOURCE_EXHAUSTED", "503", "429", "DEADLINE_EXCEEDED")
@@ -69,70 +68,7 @@ REGRAS_LINGUAGEM = """Regras de linguagem (obrigatórias):
   valor inventado."""
 
 
-# Agente de Roadmap
-# ---------------------------------------------------------------------------
-class AgenteRoadmap:
-    def __init__(self, caminho=CAMINHO_ROADMAP):
-        self.etapas = json.load(open(caminho, encoding="utf-8"))
-        self.passos = []
-        for etapa in self.etapas:
-            for item in etapa["itens"]:
-                self.passos.append({
-                    "etapa": etapa["titulo"],
-                    "titulo": item["titulo"],
-                    "conteudo": item["conteudo"],
-                    "observacao_especialista": item.get("observacao_especialista", ""),
-                })
-
-    def total_passos(self):
-        return len(self.passos)
-
-    def passo_atual(self, indice):
-        if indice >= len(self.passos):
-            return None
-        return self.passos[indice]
-
-    def gerar_resposta(self, indice, cidade=None, area_m2=None):
-        passo = self.passo_atual(indice)
-        if passo is None:
-            return "Você concluiu todas as etapas do roadmap de cultivo da alface! 🎉", True
-
-        contexto_local = ""
-        if cidade:
-            contexto_local = f"O produtor está em {cidade}"
-            if area_m2:
-                contexto_local += f" e tem {area_m2} m² disponíveis para plantio"
-            contexto_local += "."
-
-        prompt = f"""Você é um agente de extensão rural especializado em cultivo de alface.
-Sua tarefa é apresentar a etapa atual do roadmap de forma clara e prática para um pequeno produtor.
-
-Etapa do roadmap: {passo['etapa']}
-Item: {passo['titulo']}
-Conteúdo técnico validado: {passo['conteudo']}
-Observação do especialista (aplicar com prioridade): {passo['observacao_especialista']}
-{contexto_local}
-
-Escreva a orientação para o produtor em linguagem simples e direta (poucos parágrafos ou lista curta).
-
-{REGRAS_LINGUAGEM}
-
-No fim, pergunte se ele quer seguir para a próxima etapa ou tem alguma dúvida sobre esta etapa."""
-
-        try:
-            resp = tentar_gerar(MODELO_CHAT, prompt)
-            return resp.text, False
-        except ModeloIndisponivel:
-          
-            texto = f"{passo['etapa']} — {passo['titulo']}\n\n{passo['conteudo']}"
-            if passo["observacao_especialista"]:
-                texto += f"\n\n(Observação do especialista: {passo['observacao_especialista']})"
-            texto += "\n\n[a IA está indisponível no momento, mostrando o conteúdo validado direto da base]"
-            texto += "\n\nQuer seguir para a próxima etapa ou tem alguma dúvida?"
-            return texto, False
-
-
-# Agente de Conhecimento 
+# Agente de Conhecimento
 # ---------------------------------------------------------------------------
 class AgenteConhecimento:
     def __init__(self, caminho=CAMINHO_CHUNKS, qtd_trechos=4):
@@ -236,30 +172,3 @@ Outras regras:
         except ModeloIndisponivel:
             return ("A IA está indisponível no momento (alta demanda no servidor do Gemini). "
                     "O conteúdo validado do ponto continua disponível acima; tente a IA de novo em instantes.")
-
-
-# Agente Orquestrador
-# ---------------------------------------------------------------------------
-class Orquestrador:
-    # manda a mensagem pro agente de roadmap (avançar) ou pro de conhecimento
-
-    def classificar(self, mensagem):
-        prompt = f"""Classifique a mensagem de um produtor rural em uma destas categorias:
-- "avancar": ele quer seguir para a próxima etapa do roadmap (ex: "ok", "próximo", "entendi", "pode continuar")
-- "duvida": ele está fazendo uma pergunta específica sobre cultivo (ex: "e se chover muito?", "qual adubo usar?")
-
-Mensagem: "{mensagem}"
-
-Responda APENAS com uma palavra: avancar ou duvida."""
-
-        try:
-            resp = tentar_gerar(MODELO_CHAT, prompt)
-            texto = resp.text.strip().lower()
-            return "avancar" if "avan" in texto else "duvida"
-        except ModeloIndisponivel:
-         
-            m = mensagem.strip().lower()
-            palavras_avancar = ("ok", "sim", "proximo", "próximo", "continuar", "entendi", "beleza", "show")
-            if m in palavras_avancar or (len(m.split()) <= 3 and "?" not in m):
-                return "avancar"
-            return "duvida"
