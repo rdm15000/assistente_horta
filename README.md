@@ -123,25 +123,67 @@ Para parar o servidor, volte ao terminal e aperte **Ctrl + C**.
 
 ## Base de conhecimento (opcional)
 
-As respostas da IA se apoiam em trechos de duas publicações de referência: o
-livro *O cultivo de hortaliças* (Embrapa) e a cartilha *Cultive sua horta
-doméstica* (Emater-RO). Os trechos já vêm prontos no repositório
-(`chunks.json` e `chunks_embeddings.json`), então **não é preciso refazer
-nada para usar o site**.
+> **Esta seção não é necessária para usar o site.** Ela só interessa a quem
+> quiser trocar as publicações de referência que a IA consulta. Para rodar o
+> projeto, pode pular direto.
 
-Para refazer a base a partir dos PDFs:
+As respostas da IA se apoiam em trechos de duas publicações: o livro
+*O cultivo de hortaliças* (Embrapa) e a cartilha *Cultive sua horta
+doméstica* (Emater-RO). Esses trechos já vêm prontos no repositório, em dois
+arquivos:
 
-1. Coloque os dois PDFs numa pasta `pdfs` dentro do projeto (ou informe outra
-   pasta no comando).
-2. Gere os trechos. O texto é extraído dos PDFs e dividido em janelas de 220
-   palavras, com 40 palavras de sobreposição entre um trecho e o seguinte:
+- `chunks.json` — o texto dos PDFs, picado em pedaços pequenos.
+- `chunks_embeddings.json` — cada pedaço traduzido em números, que é o que
+  permite ao sistema achar o trecho certo para cada pergunta.
 
-   ```
-   python build_chunks.py
-   ```
+### Quando refazer
 
-3. Apague o `chunks_embeddings.json` antigo e gere os embeddings de novo:
+Só quando o conteúdo de referência mudar: outra publicação, uma edição nova
+de um dos livros, ou uma mudança no tamanho dos trechos (as constantes
+`TAM_TRECHO` e `SOBREPOSICAO`, no topo do `build_chunks.py`).
 
-   ```
-   python embed_chunks.py
-   ```
+### Como refazer
+
+Os dois passos andam juntos: **rodar o passo 1 sem o passo 2 deixa a busca da
+IA quebrada**, e sem dar erro nenhum. O motivo está explicado no fim da seção.
+
+**Passo 1 — gerar os trechos**
+
+Coloque os PDFs numa pasta `pdfs` dentro do projeto e rode:
+
+```
+python build_chunks.py
+```
+
+Se os PDFs estiverem em outro lugar, passe o caminho da pasta:
+`python build_chunks.py C:\caminho\da\pasta`
+
+O script procura os arquivos pelos nomes exatos `Ocultivodehortalicas.pdf` e
+`20210716-cartilha-cultive-sua-horta.pdf`. Se você renomeou os PDFs ou quer
+usar outra publicação, ajuste a lista `FONTES` no topo do `build_chunks.py`.
+
+O texto é extraído e dividido em janelas de 220 palavras, com 40 palavras de
+sobreposição entre uma janela e a seguinte — a sobreposição evita que uma
+orientação seja cortada no meio.
+
+**Passo 2 — apagar o `chunks_embeddings.json` antigo e gerar os embeddings**
+
+Apague o arquivo `chunks_embeddings.json` e rode:
+
+```
+python embed_chunks.py
+```
+
+Precisa da chave da API configurada (passo 4 da instalação). Leva alguns
+minutos: os trechos vão em lotes, com pausa entre eles para respeitar o
+limite gratuito da API. Se o limite for atingido, o script espera e tenta de
+novo sozinho; se ainda assim parar, é só rodar de novo mais tarde — ele
+retoma de onde parou.
+
+> **Por que apagar o arquivo antes?** Justamente por causa dessa retomada. O
+> `embed_chunks.py` olha quantos trechos já têm embedding no arquivo e começa
+> do seguinte. Com uma base nova e o arquivo antigo no lugar, ele entende que
+> os primeiros trechos já estão prontos e pula todos — deixando os embeddings
+> antigos colados no texto novo. Não aparece erro, o site abre normalmente,
+> mas a IA passa a procurar por um trecho e ler outro. Apagar o arquivo é o
+> que força o recomeço do zero.
