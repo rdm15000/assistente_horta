@@ -23,8 +23,9 @@
 #    mencionado anteriormente...", que repetia a adubação de plantio
 # f. sai do texto de pragas o recado "Colocar lesmas e caracois por último",
 #    que estava dentro da célula "Roadmap" e aparecia pro usuário
-# g. (não muda o roadmap) gera "Roadmap Alface - versão atual.xlsx", com o
-#    que está de fato no site, pra comparar com a planilha original
+#
+# No fim, o script lista no terminal o que mudou em cada ponto em relação à
+# planilha original.
 
 
 import json
@@ -32,15 +33,13 @@ import os
 import re
 
 import openpyxl
-from openpyxl.styles import Alignment, Font, PatternFill
 
 DIR_BASE = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PLANILHA = os.path.join(DIR_BASE, "Roadmap Alface.xlsx")
 NOME_ABA = "Página1"
 ARQUIVO_SAIDA = os.path.join(DIR_BASE, "roadmap_estruturado.json")
-PLANILHA_ATUAL = os.path.join(DIR_BASE, "Roadmap Alface - versão atual.xlsx")
 
-# o que mudou em cada ponto em relação à planilha original (vai pra PLANILHA_ATUAL)
+# o que mudou em cada ponto em relação à planilha original (sai no resumo final)
 IGUAL = "Igual à planilha original"
 COM_OBS = "Observação da especialista incorporada ao texto"
 OBS_NO_LUGAR = "Texto substituído pela observação da especialista"
@@ -172,44 +171,17 @@ def aplicar_revisao_nov_2026(etapas, notas):
     return etapas
 
 
-def salvar_planilha_atual(etapas, notas, removidos):
-    # Retrato do roadmap que está no site, no formato da planilha original
-    # (NIVEL / DESCRIÇÃO / Roadmap), pra comparar as duas lado a lado.
-    fonte = Font(name="Arial", size=10)
-    negrito = Font(name="Arial", size=10, bold=True)
-    cinza = PatternFill("solid", fgColor="D9D9D9")
-    quebra = Alignment(wrap_text=True, vertical="top")
-
-    planilha = openpyxl.Workbook()
-    aba = planilha.active
-    aba.title = "Roadmap atual"
-    aba.append(["NIVEL", "DESCRIÇÃO", "Roadmap", "Mudança em relação à planilha original"])
-    for n_etapa, etapa in enumerate(etapas, start=1):
-        aba.append([str(n_etapa), etapa["titulo"], None, None])
-        for celula in aba[aba.max_row]:
-            celula.fill = cinza
-        for n_item, item in enumerate(etapa["itens"], start=1):
-            aba.append([f"{n_etapa}.{n_item}", item["titulo"], item["conteudo"], notas.get(id(item), "")])
-
-    aba_fora = planilha.create_sheet("Removidos")
-    aba_fora.append(["ETAPA (planilha original)", "DESCRIÇÃO", "Motivo"])
-    for etapa_titulo, descricao in removidos:
-        aba_fora.append([etapa_titulo, descricao, 'Observação da especialista: "Retirar"'])
-
-    for folha, larguras in ((aba, (8, 34, 90, 48)), (aba_fora, (34, 52, 40))):
-        for letra, largura in zip("ABCD", larguras):
-            folha.column_dimensions[letra].width = largura
-        for linha in folha.iter_rows():
-            for celula in linha:
-                celula.font = negrito if (celula.row == 1 or celula.fill == cinza) else fonte
-                celula.alignment = quebra
-        folha.freeze_panes = "A2"
-
-    try:
-        planilha.save(PLANILHA_ATUAL)
-        print(f"Planilha de comparação salva em {PLANILHA_ATUAL}")
-    except PermissionError:
-        print(f"AVISO: não consegui salvar {PLANILHA_ATUAL} — ela está aberta no Excel?")
+def resumir_mudancas(etapas, notas):
+    # Registro do que a curadoria fez em cada ponto. Antes isso ia pra uma
+    # planilha de comparação; agora sai aqui, que é onde dá pra conferir sem
+    # abrir o Excel.
+    print("\nMudanças em relação à planilha original:")
+    for etapa in etapas:
+        for item in etapa["itens"]:
+            nota = notas.get(id(item), "")
+            if nota and nota != IGUAL:
+                print(f"  {etapa['titulo']} > {item['titulo']}")
+                print(f"    {nota}")
 
 
 def main():
@@ -278,7 +250,7 @@ def main():
     for e in etapas:
         print(f"  {e['titulo']}: {len(e['itens'])} pontos")
     print(f"\nSalvo em {ARQUIVO_SAIDA}")
-    salvar_planilha_atual(etapas, notas, removidos)
+    resumir_mudancas(etapas, notas)
 
 
 if __name__ == "__main__":
