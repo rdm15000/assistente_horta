@@ -102,6 +102,22 @@ document.querySelectorAll(".sugestao").forEach((s) => {
   });
 });
 
+// O Gemini responde com marcação Markdown (**negrito**, *itálico*, listas com
+// "* "). Aqui ela vira formatação de verdade, em vez de aparecer crua na tela.
+// O texto é escapado antes, então só as tags <strong> e <em> geradas aqui
+// chegam como HTML.
+function formatarResposta(texto) {
+  const escapado = texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return escapado
+    .replace(/^(\s*)[*-] (?=\S)/gm, "$1• ")          // itens de lista
+    .replace(/^#{1,6}\s+(.+)$/gm, "<strong>$1</strong>") // títulos
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^\w*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![\w*])/g, "$1<em>$2</em>");
+}
+
 function addResposta(pergunta, resposta) {
   const wrap = document.createElement("div");
   wrap.className = "resposta";
@@ -112,7 +128,7 @@ function addResposta(pergunta, resposta) {
 
   const r = document.createElement("div");
   r.className = "resposta-texto";
-  r.textContent = resposta;
+  r.innerHTML = formatarResposta(resposta);
 
   wrap.appendChild(p);
   wrap.appendChild(r);
